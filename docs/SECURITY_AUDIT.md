@@ -10,12 +10,12 @@
 > |---|---|---|
 > | H1 `cmd /C` 命令注入 | ✅ 已修 | 从不拼 shell 字符串（始终传 args 数组）；`canonicalize` + 扩展名白名单（`.bat`/`.ps1`/`.exe`）+ shell 元字符黑名单；QQ 号强制 5–11 位纯数字；**launcher 必须位于 `napcat_path` 目录树内**（防止 IPC 面被滥用为"执行任意盘任意脚本"） |
 > | H2 存储型 XSS | ✅ 已修 | 全量 `escapeHtml`（含属性值）；`onclick` / `onchange` 等内联事件属性已清零（0 处），改用 `data-action` 全局事件委托 + `data-*` 传参 |
-> | H3 CSP 为 null | ✅ 已修 | `tauri.conf.json` 已配置 CSP。注意：`script-src` 仍含 `'unsafe-inline'`；前端现已无内联脚本，可进一步收紧 |
+> | H3 CSP 为 null | ✅ 已修 | `tauri.conf.json` 已配置 CSP。**v0.4.1 起 `script-src` 去掉了 `'unsafe-inline'`**（前端已无内联 script / 内联事件 / `javascript:`，构建后实测界面与 IPC 正常）；`style-src` 仍保留 inline，因为模板里有大量 `style="..."` 属性 |
 > | M1 启动路径无校验 | ✅ 已修 | 同 H1；`detect_napcat_path` 只扫固定安装根目录，**不扫**桌面/下载/用户主目录 |
-> | M2 日志敏感信息 | ⚠️ 部分 | `redact` 已修无限循环**与** `Authorization: Bearer <token>` 脱敏不完整（原实现只打码 scheme，token 本体仍输出）。但覆盖范围仍限于 `token=` / `access_token=` / `authorization=` / `Authorization:` 四种形式；**JSON 形式（如 `"accessToken":"xxx"`）、消息体与 CQ 码未覆盖**，需继续增强 |
-> | M3 配置敏感字段 | ⚠️ 未做 | 仍无 DPAPI / keyring。但前端已**移除**"登录态加密保存在桌面端配置目录"的虚假承诺，改为如实说明"登录态由 NapCat 自身保存在其工作目录，桌面端只记录该账号是否成功登录过" |
+> | M2 日志敏感信息 | ✅ 已修（v0.4.1） | `redact` 已修无限循环**与** `Authorization: Bearer <token>` 脱敏不完整。本轮补齐键表：新增 `client_secret` / `clientsecret` / `private_key` / `privatekey`；驼峰写法（`accessToken` / `apiKey`）由大小写不敏感匹配天然覆盖。新增单测 `redacts_camel_case_and_oauth_fields`，脱敏测试共 8 个。**仍不覆盖**：URL 编码形式、群消息体与 CQ 码（引入 regex 可解，刻意不引） |
+> | M3 配置敏感字段 | ✅ 已修（v0.4.1） | 新增 `services/secret.rs`：用 **Windows DPAPI** 加密落盘的 `api_key` 与 OneBot `access_token`，格式 `dpapi:<hex>`。读时自动解密、写时自动加密，无前缀的旧明文原样兼容（下次保存自动升级）。**边界如实说明**：DPAPI 绑定当前用户+机器，防的是配置被拷走/同步网盘/截图，不防同机同用户的其他进程 |
 > | L1 关闭最小化不可绕过 | ✅ 保持 | `CloseRequested` 统一 `hide() + prevent_close()`，唯一退出入口是托盘菜单 |
-> | L2 依赖版本 | ✅ 无已知高危 | 仍建议 CI 加 `cargo audit` 复核（本机无法联网核实 advisory） |
+> | L2 依赖版本 | ✅ 无已知高危 | v0.4.1 起 CI 增加 `rustsec/audit-check`（本机无法联网核实 advisory，交给 CI 的官方数据库） |
 > | L3 `#[cfg]` 跨平台编译问题 | ✅ 已修 | 该写法已不存在 |
 >
 > **后续新增的加固**（不在原报告范围内）：

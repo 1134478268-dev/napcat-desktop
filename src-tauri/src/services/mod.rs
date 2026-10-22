@@ -6,6 +6,7 @@ pub mod events;
 pub mod launcher;
 pub mod logging;
 pub mod plugin_fs;
+pub mod secret;
 pub mod watcher;
 
 // 注意：ai_service 不做 glob 重导出。它的 `save_*` 与 commands::app::save_config

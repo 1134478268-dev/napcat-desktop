@@ -65,11 +65,13 @@ pub fn base64_encode(data: &[u8]) -> String {
 ///
 /// 已知不覆盖（如实保留为局限）：URL 编码形式（如 `token%3Dxxx`）、群消息体与 CQ 码原文；
 /// 要彻底覆盖需要引入 regex crate，当前刻意不引。
-pub const REDACT_KEYS: [&str; 12] = [
+pub const REDACT_KEYS: [&str; 16] = [
     // 通用 token / 授权
     "token", "access_token", "accesstoken", "access-token", "authorization",
     // 密码与密钥
     "password", "passwd", "qq_password", "api_key", "apikey", "secret", "x-api-key",
+    // OAuth / 云厂商常见字段（M2 审计补充）
+    "client_secret", "clientsecret", "private_key", "privatekey",
 ];
 
 /// 在 `s[from..]` 里**不区分大小写**地查找 ASCII 键名，返回绝对字节偏移。

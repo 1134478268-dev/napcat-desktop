@@ -1,6 +1,6 @@
 [package]
 name = "napcat-desktop"
-version = "0.4.0"
+version = "0.4.1"
 description = "NapCat Desktop 管理面板"
 edition = "2021"
 
@@ -12,6 +12,11 @@ tauri = { version = "2", features = ["tray-icon", "image-png"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = "0.4"
+
+# 审计 M3：用 Windows DPAPI 加密落盘的 API Key / OneBot Token。
+# 只加 Windows 目标，避免影响其他平台的解析。
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Security_Cryptography", "Win32_Foundation"] }
 
 [profile.release]
 panic = "abort"
