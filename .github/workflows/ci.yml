@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# audit-check 需要创建 check run，默认 GITHUB_TOKEN 只有读权限，
+# 会报 "Resource not accessible by integration" 让 CI 变红（与漏洞无关）。
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   check:
     # 项目只面向 Windows（Tauri + WebView2 + 注册表），用 windows runner
