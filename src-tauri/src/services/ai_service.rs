@@ -70,15 +70,35 @@ fn write_json<T: serde::Serialize>(path: &PathBuf, value: &T) -> Result<(), Stri
 }
 
 pub fn load_state(app: &tauri::AppHandle) -> Result<AiState, String> {
+    let mut config = read_json::<AiConfig>(&config_file(app)?);
+    // 落盘的是 DPAPI 密文；前端需要明文才能显示/编辑，所以在这里统一解密。
+    // 旧版明文没有 dpapi: 前缀，decrypt 会原样返回，因此天然向后兼容。
+    for p in &mut config.providers {
+        p.api_key = crate::services::secret::decrypt(&p.api_key)?;
+    }
+    config.gateway.access_token = crate::services::secret::decrypt(&config.gateway.access_token)?;
+
     Ok(AiState {
-        config: read_json::<AiConfig>(&config_file(app)?),
+        config,
         personas: read_json::<Vec<Persona>>(&personas_file(app)?),
         memories: read_json::<Vec<MemoryEntry>>(&memories_file(app)?),
     })
 }
 
 pub fn save_ai_config(app: &tauri::AppHandle, config: &AiConfig) -> Result<(), String> {
-    write_json(&config_file(app)?, config)
+    // 写盘前加密：配置文件即使被拷走 / 同步到网盘 / 截图，也拿不到可用的 key。
+    // is_encrypted 判断是防双重加密：万一某条路径绕过 load_state 直接拿到了密文，
+    // 再加密一次会得到解不开的套娃。
+    let mut cfg = config.clone();
+    for p in &mut cfg.providers {
+        if !crate::services::secret::is_encrypted(&p.api_key) {
+            p.api_key = crate::services::secret::encrypt(&p.api_key)?;
+        }
+    }
+    if !crate::services::secret::is_encrypted(&cfg.gateway.access_token) {
+        cfg.gateway.access_token = crate::services::secret::encrypt(&cfg.gateway.access_token)?;
+    }
+    write_json(&config_file(app)?, &cfg)
 }
 
 pub fn save_ai_personas(app: &tauri::AppHandle, personas: &[Persona]) -> Result<(), String> {

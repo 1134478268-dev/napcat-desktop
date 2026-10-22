@@ -210,6 +210,16 @@ mod redact_tests {
         assert_eq!(redact("token=a token=b"), "token=*** token=***");
     }
 
+    /// 审计 M2 的补充覆盖：驼峰写法与 OAuth / 云厂商字段。
+    /// 驼峰能命中是因为 find_ci 大小写不敏感，键表里存的是小写形式。
+    #[test]
+    fn redacts_camel_case_and_oauth_fields() {
+        assert_eq!(redact("\"accessToken\":\"abc\""), "\"accessToken\":\"***\"");
+        assert_eq!(redact("\"apiKey\":\"k-123\""), "\"apiKey\":\"***\"");
+        assert_eq!(redact("client_secret=s3cr3t"), "client_secret=***");
+        assert_eq!(redact("privateKey: abc"), "privateKey: ***");
+    }
+
     #[test]
     fn terminates_when_key_has_no_value() {
         // 这三条正是修复前会让 while 原地打转（死循环）的输入

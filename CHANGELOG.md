@@ -10,6 +10,25 @@
 - 上下文自动摘要成长期记忆
 - 网关多账号支持
 
+## [0.4.1] - 2026-10-22
+
+本版是一次安全收口，把审计报告里遗留的 4 项全部闭环。
+
+### 安全
+
+- **M3 配置加密**：`api_key` 与 OneBot `access_token` 改用 **Windows DPAPI** 加密落盘（`dpapi:<hex>`），
+  读写自动加解密，旧明文配置原样兼容并在下次保存时升级
+- **M2 脱敏增强**：键表补齐 `client_secret` / `clientsecret` / `private_key` / `privatekey`；
+  驼峰写法（`accessToken` / `apiKey`）由大小写不敏感匹配覆盖；新增单测锁定
+- **H3 CSP 收紧**：`script-src` 去掉 `'unsafe-inline'`（前端已无内联脚本/事件/`javascript:`）
+- **L2 依赖审计**：CI 增加 `rustsec/audit-check`
+
+### 验证
+
+- 脱敏单测 8 个、DPAPI 单测 3 个（含往返加解密）
+- 落盘实测：`api_key` 从 `sk-test-...` 变为 `dpapi:01000000...`
+- 重启后 AI 页正常解密显示，CSP 收紧后界面与 IPC 均正常
+
 ## [0.4.0] - 2026-10-22
 
 本版本把「能跑」推进到「可长期用」：日志能分开看、AI 能整体关、启动不再撞车。

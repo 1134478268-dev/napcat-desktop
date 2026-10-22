@@ -28,6 +28,13 @@ jobs:
       - name: clippy + tests
         run: powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/lint.ps1
 
+      # L2：依赖漏洞复核（本地难以核实 advisory，放到 CI 用官方数据库）
+      - name: Audit dependencies
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: src-tauri
+
   build:
     needs: check
     runs-on: windows-latest
