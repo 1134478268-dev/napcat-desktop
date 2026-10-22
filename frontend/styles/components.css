@@ -1,0 +1,31 @@
+/* 通用组件：按钮、卡片
+ * 由 dist/index.html 拆分；文件顺序即层叠顺序，勿随意调整加载次序。
+ */
+/* ============ Buttons ============ */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:7px;
+  font-size:13px;font-weight:500;cursor:pointer;
+  border:1px solid transparent;
+  background:var(--bg-elevated);color:var(--text-1);
+  transition:all .12s;font-family:var(--sans);
+}
+.btn:hover{background:var(--bg-hover)}
+.btn.primary{background:var(--accent);color:var(--accent-on);border-color:transparent}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.danger{background:var(--err-soft);color:var(--err);border-color:rgba(255,107,107,.3)}
+.btn.danger:hover{background:rgba(255,107,107,.22)}
+.btn.ghost{background:transparent;border-color:var(--border-strong);color:var(--text-2)}
+.btn.ghost:hover{color:var(--text-1);border-color:var(--text-3)}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ============ Cards ============ */
+.card{
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 16px;
+}
+.grid{display:grid;gap:12px}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}

@@ -1,0 +1,285 @@
+/* 各视图样式：概览 / 账号 / 网络 / 日志 / WebUI / 设置
+ * 由 dist/index.html 拆分；文件顺序即层叠顺序，勿随意调整加载次序。
+ */
+/* ============ Overview ============ */
+.hero{
+  background:linear-gradient(135deg,var(--bg-surface) 0%,var(--bg-elevated) 100%);
+  border:1px solid var(--border);border-radius:12px;
+  padding:14px 18px;display:flex;align-items:center;gap:18px;
+  margin-bottom:14px;
+}
+.avatar{
+  width:46px;height:46px;border-radius:11px;
+  background:linear-gradient(135deg,#5ab0ff,#a06bff);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;flex-shrink:0;
+}
+.hero-id{flex:1;min-width:0}
+.hero-id .qq{font-size:18px;font-weight:700}
+.hero-id .nick{color:var(--text-2);font-size:12.5px;margin-top:2px}
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;
+}
+.status-pill.ok{background:var(--ok-soft);color:var(--ok)}
+.status-pill.off{background:rgba(93,101,121,.18);color:var(--text-3)}
+.status-pill.starting{background:var(--warn-soft);color:var(--warn)}
+.hero-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.stat-label{font-size:11.5px;color:var(--text-3);margin-bottom:4px}
+.stat-value{font-size:21px;font-weight:700;font-family:var(--mono);letter-spacing:-.5px;line-height:1.2}
+.stat-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+.stat-value.ok{color:var(--ok)}
+
+/* ---- 概览页专用布局 ----
+ * 为什么需要 .view-fill：#view 是普通块级滚动容器，内容多高就多高，于是概览页的
+ * 日志卡只能用固定高度（原来写死 460px）——720p 下溢出、1080p 下大片留白。
+ * 改成 flex 纵列后，日志卡用 flex:1 吃掉剩余高度，页面本身不滚动、滚动交给日志体内部。
+ * 只对概览路由加这个类（见 render()），其余页面保持原样，避免影响已有布局。 */
+.view-fill{display:flex;flex-direction:column;gap:13px}
+.view-fill .view-title{margin-bottom:0}
+.view-fill .hero{margin-bottom:0}
+
+/* 统计卡：自适应列数，窗口越宽放得越多（165px 起），不再写死 3 列 */
+.ov-stats{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+
+/* 日志卡：吃掉剩余高度；min-height 保证窗口变矮时不会压成一条线（此时外层 .view 会滚动） */
+.ov-logs{flex:1;min-height:190px;display:flex;flex-direction:column;padding:15px 18px}
+.ov-logs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-shrink:0}
+.ov-logs .log-body{flex:1;height:auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+.ov-bot{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-3)}
+
+/* NapCat 路径：单行省略，避免长路径把 Hero 撑开 */
+.ov-path{font-family:var(--mono);font-size:11.5px;color:var(--text-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 概览页日志行：时间 + 级别标签 + 正文，按级别着色（与日志页同一套语义） */
+.ov-log{display:flex;gap:9px;font-family:var(--mono);font-size:11.5px;line-height:1.75}
+.ov-log-ts{color:var(--text-3);flex-shrink:0}
+.ov-log-lv{flex-shrink:0;width:44px;font-weight:700;color:var(--text-3)}
+.ov-log-msg{color:var(--text-2);min-width:0;white-space:pre-wrap;word-break:break-all}
+.ov-log.err .ov-log-lv,.ov-log.err .ov-log-msg{color:var(--err)}
+.ov-log.warn .ov-log-lv,.ov-log.warn .ov-log-msg{color:var(--warn)}
+.ov-log.recv .ov-log-lv,.ov-log.recv .ov-log-msg{color:var(--info)}
+.ov-log.ok .ov-log-lv,.ov-log.ok .ov-log-msg{color:var(--ok)}
+.ov-log.plugin .ov-log-lv,.ov-log.plugin .ov-log-msg{color:#b78cff}
+/* 空态：日志区现在很高，用 margin:auto 在 flex 容器里垂直居中，
+   否则"暂无日志"会孤零零贴在顶部（配合上面 .log-body 的 flex 列布局） */
+.ov-log-empty{color:var(--text-3);font-size:12.5px;text-align:center;margin:auto}
+
+/* ============ Accounts ============ */
+.acct-card{display:flex;flex-direction:column;gap:12px}
+.acct-head{display:flex;align-items:center;gap:12px}
+.acct-avatar{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0}
+.acct-meta{flex:1;min-width:0}
+.acct-qq{font-size:12px;color:var(--text-3);font-family:var(--mono)}
+.acct-nick{font-weight:600;font-size:14px;color:var(--text-1);display:flex;align-items:center;gap:5px}
+.edit-icon{
+  display:inline-flex;cursor:pointer;color:var(--text-3);
+  opacity:0;transition:opacity .12s;
+}
+.acct-nick:hover .edit-icon{opacity:1}
+.edit-icon:hover{color:var(--accent)}
+.nick-input{
+  background:var(--bg-base);border:1px solid var(--accent);
+  color:var(--text-1);padding:2px 8px;border-radius:5px;
+  font-size:12px;font-family:var(--sans);outline:none;width:160px;
+}
+.memo-input{
+  background:transparent;border:none;border-bottom:1px dashed var(--border-strong);
+  color:var(--text-2);font-size:11.5px;font-family:var(--sans);
+  padding:2px 0;margin-top:5px;width:220px;outline:none;
+  transition:border-color .12s,color .12s;
+}
+.memo-input:focus{border-bottom-color:var(--accent);color:var(--text-1)}
+.memo-input::placeholder{color:var(--text-3)}
+.acct-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border)}
+.auth-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:600;
+}
+.auth-tag.ok{background:var(--ok-soft);color:var(--ok)}
+.auth-tag.warn{background:var(--warn-soft);color:var(--warn)}
+.add-card{
+  border:1.5px dashed var(--border-strong);
+  border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;min-height:140px;color:var(--text-3);cursor:pointer;
+  transition:all .15s;
+}
+.add-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+/* ============ Network ============ */
+.net-row{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 16px;border:1px solid var(--border);
+  border-radius:8px;margin-bottom:10px;background:var(--bg-surface);
+}
+.net-type{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:3px 9px;border-radius:5px;letter-spacing:.5px;
+}
+.net-type.http{background:color-mix(in srgb, var(--info) 14%, transparent);color:var(--info)}
+.net-type.ws{background:color-mix(in srgb, var(--ws) 14%, transparent);color:var(--ws)}
+.net-type.post-ws{background:color-mix(in srgb, var(--ok) 14%, transparent);color:var(--ok)}
+.net-info{flex:1;min-width:0}
+.net-port{font-family:var(--mono);font-size:13px}
+.net-addr{font-size:11.5px;color:var(--text-3);font-family:var(--mono)}
+/* 服务备注是用户自由输入（可能很长或带换行），pre-wrap + break-word 避免撑破这一行 */
+.net-memo-text{font-size:11.5px;color:var(--text-3);margin-top:2px;white-space:pre-wrap;word-break:break-word}
+
+/* ============ Logs ============ */
+.log-toolbar{
+  display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;
+}
+.log-body{
+  background:#0b0f14;border:1px solid var(--border-strong);
+  border-radius:8px;padding:14px 16px;
+  font-family:var(--mono);font-size:12.5px;line-height:1.65;
+  overflow-y:auto;min-height:120px;color:#d4dce5;
+}
+.log-line{white-space:pre-wrap;word-break:break-all;color:var(--text-2)}
+.log-line .ts{color:#5b6b7c;margin-right:10px}
+.log-line .lvl{font-weight:700;margin-right:10px}
+.log-line .src{display:inline-block;min-width:52px;font-size:11px;padding:0 6px;margin-right:8px;border-radius:4px;text-align:center;background:var(--bg-elevated);color:var(--text-3)}
+.log-line .src-ai{background:rgba(90,176,255,.16);color:var(--info)}
+.log-line .src-bot{background:rgba(195,155,255,.16);color:var(--ws)}
+.log-line .src-napcat{background:rgba(61,220,151,.12);color:var(--ok)}
+.log-line .msg{color:#d4dce5}
+.log-line.info .lvl{color:var(--info)}
+.log-line.info .msg{color:var(--text-2)}
+.log-line.ok .lvl{color:var(--ok)}
+.log-line.ok .msg{color:var(--ok)}
+.log-line.recv{background:color-mix(in srgb, var(--info) 8%, transparent)}
+.log-line.recv .lvl{color:var(--info)}
+.log-line.recv .msg{color:var(--info)}
+.log-line.warn{background:color-mix(in srgb, var(--warn) 6%, transparent)}
+.log-line.warn .lvl{color:var(--warn)}
+.log-line.warn .msg{color:var(--warn)}
+.log-line.err{background:color-mix(in srgb, var(--err) 8%, transparent)}
+.log-line.err .lvl{color:var(--err)}
+.log-line.err .msg{color:var(--err)}
+/* 插件网格：3×N 小方格，对称排列 */
+.plugin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.plugin-cell{
+  background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;
+  padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  text-align:center;transition:border-color .15s;
+}
+.plugin-cell:hover{border-color:var(--accent)}
+.plugin-cell-icon{
+  width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;
+}
+.plugin-cell-name{
+  font-size:13px;font-weight:600;color:var(--text-1);
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.plugin-cell-ver{font-size:11px;color:var(--text-3);font-family:var(--mono)}
+.plugin-cell-sub{font-size:10.5px;color:var(--text-3);font-family:var(--mono);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plugin-cell-toggle{display:flex;align-items:center;gap:6px;margin-top:4px}
+.plugin-cell-memo{
+  font-size:10.5px;color:var(--text-3);margin-top:6px;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  cursor:pointer;padding:2px 6px;border-radius:4px;
+}
+.plugin-cell-memo:hover{background:var(--bg-elevated);color:var(--text-2)}
+
+/* ---- 插件页：分区（默认 / 自定义 / 可选）与推荐卡片 ---- */
+.pl-block{margin-bottom:13px}
+.pl-block-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.pl-block-head b{font-size:13.5px;color:var(--text-1)}
+.pl-count{font-size:11px;color:var(--text-3);font-family:var(--mono);
+  background:var(--bg-elevated);border-radius:9px;padding:1px 8px}
+.pl-hint{font-size:11px;color:var(--text-3);margin-left:auto}
+.pl-empty{grid-column:1/-1;color:var(--text-3);font-size:12px;text-align:center;
+  padding:20px 0;border:1px dashed var(--border);border-radius:9px}
+/* 推荐卡片：描述固定三行、按钮贴底，保证同一网格里每格高度一致 */
+.pl-rec .plugin-cell-desc{
+  font-size:10.5px;color:var(--text-2);line-height:1.5;text-align:center;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  min-height:47px;
+}
+.pl-rec-tag{font-size:10px;padding:1px 7px;border-radius:9px;font-weight:600}
+.pl-rec-tag.official{background:var(--accent-soft);color:var(--accent)}
+.pl-rec-tag.community{background:rgba(93,101,121,.18);color:var(--text-3)}
+.pl-rec-actions{display:flex;gap:6px;margin-top:auto;padding-top:8px;width:100%}
+.pl-rec-actions .btn{flex:1;justify-content:center;padding:5px 8px;font-size:11.5px}
+/* 安装中：整卡降透明度并禁用点击，避免重复触发下载 */
+.pl-installing{opacity:.55;pointer-events:none}
+.log-line.plugin{background:color-mix(in srgb, #a06bff 8%, transparent)}
+.log-line.plugin .lvl{color:#b78cff}
+.log-line.plugin .msg{color:#c9a8ff}
+select,input[type=text]{
+  background:var(--bg-elevated);border:1px solid var(--border-strong);
+  color:var(--text-1);padding:6px 10px;border-radius:6px;
+  font-size:12.5px;font-family:var(--sans);outline:none;
+}
+select:focus,input[type=text]:focus{border-color:var(--accent)}
+
+/* ============ WebUI iframe mock ============ */
+.browser-mock{
+  border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  height:calc(100vh - 180px);display:flex;flex-direction:column;
+}
+.browser-bar{
+  background:var(--bg-surface);padding:10px 14px;
+  display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);
+}
+.browser-dots{display:flex;gap:6px}
+.browser-dots span{width:11px;height:11px;border-radius:50%}
+.url-box{
+  flex:1;background:var(--bg-base);border-radius:6px;
+  padding:5px 12px;font-family:var(--mono);font-size:12px;color:var(--text-2);
+}
+.browser-content{
+  flex:1;background:var(--browser-bg);display:flex;align-items:center;justify-content:center;
+  color:#8890a0;font-size:13px;
+}
+
+/* ============ Settings ============ */
+.set-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0;border-bottom:1px solid var(--border);
+}
+.set-row:last-child{border-bottom:none}.set-label{font-size:14px}
+.set-desc{font-size:12px;color:var(--text-3);margin-top:2px}
+.switch{
+  width:40px;height:22px;border-radius:12px;background:var(--border-strong);
+  position:relative;cursor:pointer;transition:background .15s;flex-shrink:0;
+}
+.switch.on{background:var(--ok)}
+.switch::after{
+  content:'';position:absolute;width:18px;height:18px;border-radius:50%;
+  background:#fff;top:2px;left:2px;transition:transform .15s;
+}
+.switch.on::after{transform:translateX(18px)}
+.path-row{display:flex;gap:8px;align-items:center;flex:1;max-width:420px}
+.path-row input{flex:1;font-family:var(--mono);font-size:12px}
+/* OneBot 内联表单 */
+.net-form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px;background:color-mix(in srgb, var(--bg-elevated) 60%, transparent);border:1px solid var(--border);border-radius:10px;margin-bottom:10px}
+.net-form .full{grid-column:1/-1}
+.net-form label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text-3)}
+.net-form input,.net-form select{background:var(--bg-base);border:1px solid var(--border);color:var(--text-1);padding:7px 10px;border-radius:6px;font-size:13px;font-family:var(--mono)}
+.net-form-actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+/* Plugin cards */
+.plugin-card{display:flex;flex-direction:column;gap:10px}
+.plugin-head{display:flex;align-items:center;gap:12px}
+.plugin-icon{
+  width:38px;height:38px;border-radius:9px;flex-shrink:0;
+  background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;
+}
+.plugin-meta{flex:1;min-width:0}
+.plugin-desc{font-size:12.5px;color:var(--text-2);line-height:1.5;padding-left:50px}
+.plugin-foot{
+  display:flex;justify-content:space-between;
+  font-size:11.5px;color:var(--text-3);
+  padding-top:10px;border-top:1px solid var(--border);
+  padding-left:50px;
+}
+.path-status{font-size:11.5px;margin-top:5px;min-height:16px;display:flex;align-items:center;gap:5px}
+.path-status.ok{color:var(--ok)}
+.path-status.warn{color:var(--warn)}
+.path-status.loading{color:var(--text-3)}
+.spinner{width:11px;height:11px;border:2px solid var(--border-strong);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}

@@ -1,0 +1,18 @@
+#!/bin/sh
+# 推送前完整检查：clippy（警告即失败）+ Rust 单测 + 前端单测。
+#
+# 为什么放 pre-push 而不是 pre-commit：完整检查要几十秒，
+# 挂在每次提交上会让人习惯性 --no-verify，反而失去意义。
+#
+# 跳过：git push --no-verify
+
+set -e
+
+if ! powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/lint.ps1; then
+  echo "" >&2
+  echo "推送被阻止：lint 未通过（见上方输出）" >&2
+  echo "只想跳过本次：git push --no-verify" >&2
+  exit 1
+fi
+
+exit 0

@@ -1,0 +1,13 @@
+# 统一换行符：仓库内一律 LF，Windows 脚本保持 CRLF 以免 cmd.exe 解析异常
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# 二进制文件不做行尾转换、不做文本 diff
+*.png binary
+*.ico binary
+*.jpg binary
+*.exe binary
+*.dll binary

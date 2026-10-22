@@ -1,0 +1,102 @@
+/* 交互层样式：Toast、响应式断点、自定义标题栏
+ * 由 dist/index.html 拆分；文件顺序即层叠顺序，勿随意调整加载次序。
+ */
+/* ============ Toast ============ */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--bg-elevated);border:1px solid var(--border-strong);
+  padding:10px 18px;border-radius:8px;font-size:13px;
+  opacity:0;transition:all .25s;pointer-events:none;z-index:99;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 自定义模态弹窗 */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;z-index:100;
+  backdrop-filter:blur(2px);
+}
+.modal-overlay.show{display:flex}
+.modal-card{
+  background:var(--bg-elevated);border:1px solid var(--border-strong);
+  border-radius:12px;padding:20px 22px;width:360px;max-width:90vw;
+  box-shadow:0 16px 48px rgba(0,0,0,.5);
+}
+.modal-title{font-size:14.5px;font-weight:600;margin-bottom:12px;color:var(--text-1)}
+.modal-input{
+  width:100%;padding:9px 12px;border-radius:7px;
+  border:1px solid var(--border-strong);background:var(--bg-base);
+  color:var(--text-1);font-size:13.5px;outline:none;box-sizing:border-box;
+}
+.modal-input:focus{border-color:var(--accent)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+h2.view-title{font-size:17px;font-weight:700;margin-bottom:12px}
+.empty-note{color:var(--text-3);font-size:12.5px;margin-top:8px}
+
+/* ============ 响应式断点 ============
+ * 窗口宽度 < 1100px：侧边栏收窄、三列统计变两列；
+ * 窗口宽度 < 820px：侧边栏收成图标条、所有网格单列、hero 纵向堆叠；
+ * 窗口高度 < 680px：压缩 hero 与统计卡片间距，保证首屏不裁切。 */
+@media (max-width: 1100px){
+  .sidebar{width:180px}
+  .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .brand{padding:14px 14px 10px}
+  .brand-name{font-size:14px}
+}
+@media (max-width: 820px){
+  .sidebar{width:64px}
+  .brand-name,.brand-sub,.nav-section,.nav-item span,.sidebar-foot span{display:none}
+  .brand{justify-content:center;padding:14px 0}
+  .nav{padding:8px 6px}
+  .nav-item{justify-content:center;padding:9px 0}
+  .grid-3{grid-template-columns:1fr}
+  .hero{flex-direction:column;align-items:flex-start;gap:12px}
+  .hero-actions{width:100%;justify-content:stretch}
+  .hero-actions .btn{flex:1;justify-content:center}
+  .view{padding:14px}
+  .topbar{padding:0 14px}
+}
+@media (max-height: 680px){
+  .hero{padding:12px 14px;margin-bottom:10px}
+  .avatar{width:38px;height:38px;font-size:17px}
+  .stat-value{font-size:18px}
+  .card{padding:10px 12px}
+  h2.view-title{margin-bottom:10px}
+}
+/* 边框与主题融合：深色主题下卡片边框微透，浅色下保持清晰 */
+.card,.hero{box-shadow:0 1px 2px rgba(0,0,0,.08)}
+[data-theme="light"] .card,[data-theme="light"] .hero{box-shadow:0 1px 2px rgba(20,30,60,.04)}
+
+/* ============ 自定义标题栏（替代 Windows 原生标题栏） ============
+ * decorations:false 后由前端自绘，深浅主题跟随 CSS 变量切换。
+ * data-tauri-drag-region 让该区域可拖拽移动窗口；
+ * 按钮区域不挂拖拽属性，避免点击被吞。 */
+.titlebar{
+  height:34px;flex-shrink:0;
+  background:var(--bg-base);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 0 0 10px;
+  user-select:none;
+  -webkit-app-region:drag;
+}
+.tb-left{display:flex;align-items:center;gap:7px;height:100%;flex:1}
+.tb-logo{width:16px;height:16px;border-radius:4px;
+  background:linear-gradient(135deg,#ff9f43,#ff6b6b);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  overflow:hidden}
+.tb-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.tb-title{font-size:12px;color:var(--text-2);font-weight:500;letter-spacing:.2px}
+.tb-right{display:flex;align-items:center;height:100%;-webkit-app-region:no-drag}
+.tb-btn{
+  width:46px;height:100%;border:none;background:transparent;
+  color:var(--text-2);cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s,color .12s;
+  -webkit-app-region:no-drag;
+}
+.tb-btn:hover{background:var(--bg-hover);color:var(--text-1)}
+.tb-btn.close:hover{background:#e81123;color:#fff}
+.tb-btn svg{width:12px;height:12px}

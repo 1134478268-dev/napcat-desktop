@@ -1,0 +1,28 @@
+# ---- 构建产物（可由 scripts/build.ps1 重新生成）----
+/src-tauri/target/
+/src-tauri/gen/schemas/
+/NapCatDesktop.exe
+*.pdb
+*.dll
+
+# ---- 依赖 ----
+node_modules/
+
+# ---- 运行数据：绝不入库 ----
+*.log
+*.tmp
+.env
+.env.*
+# 保留示例文件
+!.env.example
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 工具临时文件 ----
+.dsh-ops-update-*.lock

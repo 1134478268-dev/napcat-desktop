@@ -1,0 +1,67 @@
+/* 设计令牌：颜色 / 圆角 / 字体 · 深色与浅色两套主题变量
+ * 由 dist/index.html 拆分；文件顺序即层叠顺序，勿随意调整加载次序。
+ */
+/* ============ Design Tokens · Dark (default) ============ */
+:root{
+  --bg-base:#0e1015;
+  --bg-surface:#151821;
+  --bg-elevated:#1c2030;
+  --bg-hover:#232839;
+  --border:#262b3a;
+  --border-strong:#343b50;
+  --text-1:#e8ebf2;
+  --text-2:#9aa3b8;
+  --text-3:#5d6579;
+  --accent:#ff9f43;
+  --accent-soft:rgba(255,159,67,.14);
+  --accent-hover:#ffb066;
+  --accent-on:#1a1208;
+  --ok:#3ddc97;
+  --ok-soft:rgba(61,220,151,.14);
+  --warn:#ffcc4d;
+  --warn-soft:rgba(255,204,77,.14);
+  --err:#ff6b6b;
+  --err-soft:rgba(255,107,107,.14);
+  --info:#5ab0ff;
+  --ws:#c39bff;
+  --browser-bg:#f5f6f8;
+  --radius:10px;
+  --mono:"Cascadia Code","JetBrains Mono",Consolas,"Courier New",monospace;
+  --sans:"Segoe UI","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+}
+/* ============ Light Theme ============ */
+[data-theme="light"]{
+  --bg-base:#f3f5f9;
+  --bg-surface:#ffffff;
+  --bg-elevated:#eef1f6;
+  --bg-hover:#e6eaf1;
+  --border:#e3e7ef;
+  --border-strong:#cdd3df;
+  --text-1:#1b1f2a;
+  --text-2:#4d5568;
+  --text-3:#8b93a7;
+  --accent:#e8891f;
+  --accent-soft:rgba(232,137,31,.13);
+  --accent-hover:#d17a15;
+  --accent-on:#ffffff;
+  --ok:#16a370;
+  --ok-soft:rgba(22,163,112,.13);
+  --warn:#d99a16;
+  --warn-soft:rgba(217,154,22,.15);
+  --err:#e5484d;
+  --err-soft:rgba(229,72,77,.12);
+  --info:#2f8fe8;
+  --ws:#8b5cf6;
+  --browser-bg:#f5f6f8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans);
+  background:var(--bg-base);
+  color:var(--text-1);
+  font-size:14px;
+  line-height:1.5;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}

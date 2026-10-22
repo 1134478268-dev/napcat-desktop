@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    # 项目只面向 Windows（Tauri + WebView2 + 注册表），用 windows runner
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 复用仓库里的 lint.ps1，保证本地与 CI 走同一条命令，
+      # 避免「本地过了 CI 挂」这种两套规则的问题。
+      # 它包含：clippy --all-targets -- -D warnings、cargo test、前端单测。
+      - name: clippy + tests
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/lint.ps1
+
+  build:
+    needs: check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build release
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/build.ps1
+      # 构建产物不入库，仅作为「能打包」的证明；需要发布时再上传 artifact
+      - name: Upload exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: napcat-desktop
+          path: NapCatDesktop.exe
+          if-no-files-found: error

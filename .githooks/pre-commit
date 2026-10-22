@@ -1,0 +1,26 @@
+#!/bin/sh
+# 提交前快速检查（约 5-10 秒）：
+#   1. cargo check —— 保证这次改动至少能编译
+#   2. 前端单测 —— 纯函数（markdown 渲染等）不被改坏
+#
+# 完整的 clippy + 全量测试放在 pre-push（见 .githooks/pre-push），
+# 提交频率远高于推送，每次都跑 clippy 会让人烦到直接 --no-verify。
+#
+# 跳过：git commit --no-verify
+
+set -e
+
+if ! powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check.ps1; then
+  echo "" >&2
+  echo "提交被阻止：编译检查未通过（见上方输出）" >&2
+  echo "只想跳过本次：git commit --no-verify" >&2
+  exit 1
+fi
+
+if ! node ./scripts/test-frontend.js > /dev/null; then
+  echo "" >&2
+  echo "提交被阻止：前端单测失败，运行 node scripts/test-frontend.js 查看详情" >&2
+  exit 1
+fi
+
+exit 0
