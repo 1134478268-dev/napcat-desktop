@@ -5,18 +5,15 @@ on:
     branches: [main]
   pull_request:
 
-# audit-check 需要创建 check run，默认 GITHUB_TOKEN 只有读权限，
-# 会报 "Resource not accessible by integration" 让 CI 变红（与漏洞无关）。
 permissions:
   contents: read
-  checks: write
 
 jobs:
   check:
     # 项目只面向 Windows（Tauri + WebView2 + 注册表），用 windows runner
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -24,9 +21,9 @@ jobs:
           components: clippy
 
       - name: Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
 
       # 复用仓库里的 lint.ps1，保证本地与 CI 走同一条命令，
       # 避免「本地过了 CI 挂」这种两套规则的问题。
@@ -34,26 +31,29 @@ jobs:
       - name: clippy + tests
         run: powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/lint.ps1
 
-      # L2：依赖漏洞复核（本地难以核实 advisory，放到 CI 用官方数据库）
+      # L2：依赖漏洞复核（本地难以核实 advisory，放到 CI 用官方数据库）。
       #
-      # 忽略两个 informational advisory，理由如下（都不是本项目可利用的漏洞）：
+      # 不用 rustsec/audit-check：它固定在 Node 20，GitHub 已弃用，会挂一条
+      # annotation 让 Actions 页面出现黄色标记。这里直接跑 cargo audit，输出完全可控。
+      #
+      # 忽略的两个 informational advisory（都不是本项目可利用的漏洞）：
       #   RUSTSEC-2024-0429  glib unsound —— glib 是 Linux/GTK 依赖，本项目只构建 Windows，
-      #                      Cargo.lock 里因跨平台依赖解析而存在，实际不会编译进产物。
+      #                      它因跨平台依赖解析出现在 Cargo.lock 里，不会编译进产物。
       #   RUSTSEC-2024-0370  proc-macro-error 停止维护 —— 间接依赖（经 tauri 构建链引入），
-      #                      只有"不再维护"标记，无任何安全漏洞，且无法在不 fork 依赖树的情况下移除。
-      # 不忽略真正的 vulnerability（severity 为 error 的那类），只有这两条 informational 会被跳过。
+      #                      只有"不再维护"标记，无安全漏洞，无法在不 fork 依赖树的情况下移除。
+      # 真正的 vulnerability 仍然会让这一步失败，被忽略的只有这两条 informational。
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@cargo-audit
+
       - name: Audit dependencies
-        uses: rustsec/audit-check@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: src-tauri
-          ignore: "RUSTSEC-2024-0429,RUSTSEC-2024-0370"
+        working-directory: src-tauri
+        run: cargo audit --ignore RUSTSEC-2024-0429 --ignore RUSTSEC-2024-0370
 
   build:
     needs: check
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - name: Build release
         run: powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/build.ps1
