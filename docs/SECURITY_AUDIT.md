@@ -244,3 +244,33 @@
 - `toast` 用 `textContent`；`editNick`/`saveNick` 已转义。
 - 无 `capabilities/` 插件面，攻击面小。
 - 关闭事件统一在 Rust 侧拦截，网页无法自行退出。
+
+---
+
+## v0.4.2 主动审计（对 AI 功能的专项复查）
+
+v0.4.0 引入的 AI 接入 / 自动回复网关属于全新攻击面，本轮做了逐点复查。
+
+### 新发现并已修复
+
+| 编号 | 问题 | 严重度 | 修复 |
+|---|---|---|---|
+| **N1** | 网关保存表情时，把消息里 `image.url` 直接 `fetch` 并落盘：可被恶意消息用于 **SSRF**（请求内网地址）和**磁盘写满**（无大小上限） | 高 | 增加 QQ CDN 域名白名单（`qpic.cn` / `qq.com` / `gtimg.cn` / `qlogo.cn`）+ 5 MB 上限 + 15 秒超时；非白名单地址记一条日志后跳过 |
+| **N2** | `open_external` 仍是 `cmd /C start "" <path>`，仅靠元字符黑名单兜底 | 中 | 改用 **`ShellExecuteW`**，路径直接交给系统 API，**没有 shell 解析层**；黑名单保留作纵深防御 |
+
+### 复查确认无问题
+
+| 位置 | 结论 |
+|---|---|
+| `pick_directory` 的 PowerShell 拼接 | 用户输入用单引号包裹且 `'` 已翻倍转义，单引号内 `$` 不解析 → 无法注入 |
+| `bot.rs` 的 `Win32_Process` 查询 | 脚本是固定字符串，无用户输入参与 |
+| `plugin_fs` 的 curl 下载 | 已有 `PLUGIN_URL_HOSTS` 域名白名单 + `validate_plugin_url` |
+| 前端 6 处 `innerHTML` | 常量 SVG / 空串 / 已经过 `escapeHtml`，无裸插值 |
+| 网关 `stickerPath` / `context` 文件名 | 前者拒绝 `/ \ ..`，后者由 QQ 号/群号（纯数字）拼接 |
+| `ai_service` 的 curl 调用 | 密钥走 stdin（`-K -`），不进命令行 |
+
+### 仍存在的已知局限（如实记录）
+
+- 脱敏不覆盖 URL 编码形式与群消息体/CQ 码原文（需引入 regex，刻意不引）
+- DPAPI 不防同机同用户的其他进程（Windows 设计如此）
+- `install_plugin` 的 zip 解压仍走系统 `tar` / `Expand-Archive`，Zip Slip 依赖其自身实现（已实测拒绝）

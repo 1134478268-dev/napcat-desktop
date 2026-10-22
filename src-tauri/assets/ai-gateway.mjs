@@ -137,6 +137,25 @@ function buildSystemPrompt() {
 
 /* ---------------- 表情库 ---------------- */
 
+/** 允许下载图片的域名后缀。消息里的 image.url 是**外部可控数据**：
+ *  不限制的话，一条恶意消息就能让网关去请求内网地址（SSRF），
+ *  或者指向一个超大文件把磁盘写满。这里只放行 QQ 官方图片 CDN。 */
+const STICKER_HOST_ALLOW = ['qpic.cn', 'qq.com', 'gtimg.cn', 'qlogo.cn'];
+/** 单张表情的大小上限（5 MB）。超出直接丢弃，不落盘。 */
+const MAX_STICKER_BYTES = 5 * 1024 * 1024;
+
+function isAllowedImageUrl(raw) {
+  let u;
+  try {
+    u = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+  const host = u.hostname.toLowerCase();
+  return STICKER_HOST_ALLOW.some((h) => host === h || host.endsWith('.' + h));
+}
+
 function saveStickerFromMessage(seg) {
   if (!gateway.save_stickers) return;
   try {
@@ -151,18 +170,28 @@ function saveStickerFromMessage(seg) {
     const name = 'auto_' + stamp;
     const target = path.join(STICKER_DIR, name + '.' + ext);
 
-    if (typeof url === 'string' && /^https?:/i.test(url)) {
-      fetch(url)
-        .then((r) => r.arrayBuffer())
-        .then((buf) => {
-          fs.writeFileSync(target, Buffer.from(buf));
-          const idx = readJson(STICKER_INDEX, {});
-          idx[name] = name + '.' + ext;
-          writeJson(STICKER_INDEX, idx);
-          log('已保存表情 ' + name + '.' + ext);
-        })
-        .catch((e) => logErr('保存表情失败: ' + e.message));
+    if (typeof url !== 'string' || !/^https?:/i.test(url)) return;
+    if (!isAllowedImageUrl(url)) {
+      logErr('跳过非 QQ CDN 的图片地址（防 SSRF）: ' + String(url).slice(0, 80));
+      return;
     }
+
+    fetch(url, { signal: AbortSignal.timeout(15000) })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const declared = Number(r.headers.get('content-length') || 0);
+        if (declared > MAX_STICKER_BYTES) throw new Error('图片超过 5MB');
+        return r.arrayBuffer();
+      })
+      .then((buf) => {
+        if (buf.byteLength > MAX_STICKER_BYTES) throw new Error('图片超过 5MB');
+        fs.writeFileSync(target, Buffer.from(buf));
+        const idx = readJson(STICKER_INDEX, {});
+        idx[name] = name + '.' + ext;
+        writeJson(STICKER_INDEX, idx);
+        log('已保存表情 ' + name + '.' + ext);
+      })
+      .catch((e) => logErr('保存表情失败: ' + e.message));
   } catch (e) {
     logErr('保存表情异常: ' + e.message);
   }
